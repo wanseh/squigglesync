@@ -1,12 +1,12 @@
-# 🎨 SquiggleSync
+# SquiggleSync
 
 **SquiggleSync** is a real-time collaborative whiteboard built to demonstrate **concurrency handling**, **state synchronization**, and **event-driven architecture** using **Angular**, **WebSockets**, and **Redis**.
 
-Think Google Docs-style collaboration — but for doodles ✏️
+Think Google Docs-style collaboration — but for doodles
 
 ---
 
-## 🚀 Why This Project Exists
+## Why This Project Exists
 
 This project was built as a **learning and upskilling exercise** to prove understanding of:
 
@@ -21,7 +21,7 @@ It is intentionally designed like a **production system**, not a toy demo.
 
 ---
 
-## 🧠 Core Concepts Demonstrated
+## Core Concepts Demonstrated
 
 - **Event-based synchronization** (instead of syncing full canvas state)
 - **Optimistic UI updates** on the client
@@ -31,7 +31,7 @@ It is intentionally designed like a **production system**, not a toy demo.
 
 ---
 
-## 🏗️ High-Level Architecture
+## High-Level Architecture
 
 ```
 ┌──────────┐        WebSocket        ┌────────────┐
@@ -64,7 +64,7 @@ It is intentionally designed like a **production system**, not a toy demo.
 
 ---
 
-## 🔄 State Synchronization Strategy
+## State Synchronization Strategy
 
 Instead of syncing the entire canvas, SquiggleSync uses an **event-based model**.
 
@@ -90,7 +90,7 @@ This approach resembles lightweight event sourcing.
 
 ---
 
-## ⚔️ Concurrency Handling
+## Concurrency Handling
 
 Concurrency is handled explicitly using:
 - Server-side event ordering
@@ -102,7 +102,7 @@ Multiple users can draw at the same time without corrupting shared state.
 
 ---
 
-## 🗂️ Repository Structure (Monorepo)
+## Repository Structure (Monorepo)
 
 ```
 squigglesync/
@@ -121,7 +121,7 @@ squigglesync/
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 **Frontend**
 - Angular
@@ -141,7 +141,7 @@ squigglesync/
 
 ---
 
-## 🌍 Deployment
+## Deployment
 
 **Frontend**
 - Hosted as static files on Vercel / Netlify / Cloudflare Pages
@@ -159,7 +159,7 @@ squigglesync/
 
 ---
 
-## 🧪 Optional Enhancements
+## Optional Enhancements
 
 - Live cursor tracking
 - User presence indicators
@@ -170,19 +170,19 @@ squigglesync/
 
 ---
 
-## 📌 Resume Description
+## Resume Description
 
 **SquiggleSync** – Real-time collaborative whiteboard built using Angular, WebSockets, and Redis to demonstrate concurrent state synchronization, event-driven architecture, and scalable real-time systems.
 
 ---
 
-## 🧑‍💻 Author
+## Author
 
 Built as a side project to deepen understanding of real-time systems, distributed state, and modern frontend architecture.
 
 ---
 
-## 📄 License
+## License
 
 MIT
 
