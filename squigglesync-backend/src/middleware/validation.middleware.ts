@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { validateEvent } from '../utils/validation.utils';
+import { validateEvent } from '../utils/validation.util';
 
 /**
  * Validation middleware for whiteboard events
