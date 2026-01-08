@@ -25,7 +25,7 @@ const conflictResolverService = new ConflictResolverService();
  *   "newEvent": {...}          // New event to check for conflicts
  * }
  */
-router.post('/test', (req, res) => {
+router.post('/', (req, res) => {
     const { existingEvents, newEvent } = req.body;
 
     if (!newEvent) {
@@ -54,7 +54,7 @@ router.post('/test', (req, res) => {
     }
 }); 
 
-router.get('/test/scenarios', (req, res) => {
+router.get('/scenarios', (req, res) => {
     res.json({
         scenarios: [
             {

@@ -6,27 +6,42 @@ import { sequenceManagerRouter } from './sequence-manager.router';
 import { eventStoreRouter } from './events-store.router';
 import { conflictResolverRouter } from './conflict-resolver.router';
 import { roomStateRouter } from './room-state.router';
+import { eventsRouter } from './events.router';
+import { roomsRouter } from './rooms.router';
 
 const router = createRouter();
 
-// Route group with middleware
-// All routes in this group will have logMiddleware and validationMiddleware applied
-// Validation middleware only affects POST/PUT/PATCH routes with event in body
-const apiRoutes = routeGroup(
-  {
-    middleware: [logMiddleware, validateEventMiddleware],
-  },
-  (router) => {
-    router.use('/sequence', sequenceManagerRouter);
-    router.use('/events', eventStoreRouter);
-    router.use('/conflict-resolver', conflictResolverRouter);
-  }
-);
+// Test endpoints
+const testRoutes = routeGroup(
+    {
+      middleware: [logMiddleware],
+    },
+    (router) => {
+      router.use('/sequence', sequenceManagerRouter);
+      router.use('/events-store', eventStoreRouter);
+      router.use('/conflict-resolver', conflictResolverRouter);
+      // router.use('/validation', validationRouter);
+      router.use('/room-state', roomStateRouter);
+    }
+  );
+
+// Production endpoints
+const productionRoutes = routeGroup(
+    {
+      middleware: [logMiddleware, validateEventMiddleware],
+    },
+    (router) => {
+      router.use('/events', eventsRouter);
+      router.use('/rooms', roomsRouter);
+    }
+  );
+  
 
 // Mount the room state router
 router.use('/room-state', logMiddleware, roomStateRouter);
 
 // Mount the route group
-router.use(apiRoutes);
+router.use('/test', testRoutes); // All test endpoints under /api/test
+router.use(productionRoutes); // Production endpoints under /api
 
 export default router;

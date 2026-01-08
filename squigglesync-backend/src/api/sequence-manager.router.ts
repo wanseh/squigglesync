@@ -24,7 +24,7 @@ const sequenceManagerService = new SequenceManagerService();
  * 400 - Bad Request
  * 500 - Internal Server Error
  */
-router.get('/test/:roomId', (req, res) => {
+router.get('/:roomId', (req, res) => {
     try {
         const { roomId } = req.params;
         const current = sequenceManagerService.getCurrentSequence(roomId);
