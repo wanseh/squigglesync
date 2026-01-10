@@ -3,10 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 // PrimeNG Components
-// import { Card } from 'primeng/card';
-// import { Toolbar } from 'primeng/toolbar';
 import { Button } from 'primeng/button';
-import { ButtonGroup } from 'primeng/buttongroup';
 import { ColorPicker } from 'primeng/colorpicker';
 import { Slider } from 'primeng/slider';
 import { Tag } from 'primeng/tag';
@@ -25,7 +22,6 @@ type TagIcon = 'pi pi-check-circle' | 'pi pi-times-circle';
     CommonModule,
     FormsModule,
     Button,
-    ButtonGroup,
     ColorPicker,
     Slider,
     Tag,
