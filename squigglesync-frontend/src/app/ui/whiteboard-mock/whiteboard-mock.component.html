@@ -159,21 +159,27 @@
             <i class="pi pi-palette text-surface-600"></i>
             <label for="color-picker" class="doodle-label text-sm font-semibold text-surface-800">Color</label>
           </div>
-          <div class="flex items-center gap-3">
-            <div 
-              class="color-swatch w-12 h-12 rounded-lg border-2 border-surface-300 shadow-sm flex-shrink-0"
-              [style.background-color]="color()"
-            ></div>
-            <div class="flex-1">
+          <div class="space-y-3">
+            <!-- Color Preview Swatch -->
+            <div class="flex items-center gap-3">
+              <div 
+                class="color-swatch w-14 h-14 rounded-lg border-2 border-surface-300 shadow-sm flex-shrink-0"
+                [style.background-color]="color()"
+              ></div>
+              <div class="flex-1">
+                <span class="text-xs text-surface-500 font-mono">{{ color() }}</span>
+              </div>
+            </div>
+            <!-- Inline Color Picker -->
+            <div class="relative">
               <p-colorpicker 
                 id="color-picker"
                 [ngModel]="color()"
                 (ngModelChange)="updateColor($event)"
-                [inline]="false"
+                [inline]="true"
                 format="hex"
                 aria-label="Select drawing color"
               />
-              <span class="text-xs text-surface-500 mt-1 block font-mono">{{ color() }}</span>
             </div>
           </div>
         </div>

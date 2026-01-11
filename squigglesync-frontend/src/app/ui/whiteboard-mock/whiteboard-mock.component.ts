@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 // PrimeNG Components
-import { Button } from 'primeng/button';
+ import { Button } from 'primeng/button';
 import { ColorPicker } from 'primeng/colorpicker';
 import { Slider } from 'primeng/slider';
 import { Tag } from 'primeng/tag';

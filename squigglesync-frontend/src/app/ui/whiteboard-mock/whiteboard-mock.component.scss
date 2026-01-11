@@ -101,13 +101,30 @@
     }
   }
   
-  // Color picker styling
-  .p-colorpicker-preview {
-    border-radius: 8px;
-    transition: transform 0.2s ease;
+  // Color picker styling - Fix popup positioning
+  .p-colorpicker {
+    width: 100%;
     
-    &:hover {
-      transform: scale(1.05);
+    .p-colorpicker-preview {
+      border-radius: 8px;
+      transition: transform 0.2s ease;
+      
+      &:hover {
+        transform: scale(1.05);
+      }
+    }
+    
+    // Fix inline color picker layout
+    &.p-colorpicker-inline {
+      .p-colorpicker-panel {
+        width: 100%;
+        border-radius: 8px;
+      }
+    }
+    
+    // Fix popup z-index if using popup mode
+    .p-colorpicker-overlay {
+      z-index: 9999 !important;
     }
   }
 }
