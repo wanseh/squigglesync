@@ -1,0 +1,310 @@
+<div class="relative h-screen w-screen overflow-hidden bg-white">
+  <!-- Full-Screen Canvas - Covers entire viewport -->
+  <div class="absolute inset-0">
+    <!-- Subtle grid pattern background - Covers full viewport -->
+    <svg class="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="grid" x="0" y="0" width="30" height="30" patternUnits="userSpaceOnUse">
+          <path d="M 30 0 L 0 0 0 30" fill="none" stroke="#c0c0c0" stroke-width="0.6"/>
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#grid)" />
+    </svg>
+    
+    <!-- Canvas overlay message -->
+    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+      <div class="text-center p-8 text-surface-500">
+        <i class="pi pi-pencil text-6xl mb-4 opacity-30"></i>
+        <p class="doodle-text text-xl font-medium mb-2 opacity-60">Whiteboard Canvas</p>
+        <p class="text-sm opacity-50">
+          Interactive drawing will be implemented here
+        </p>
+        <p class="text-xs mt-4 opacity-40">
+          Tool: {{ selectedTool() }} | Color: {{ color() }} | Width: {{ strokeWidth() }}px
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Header Overlay - Transparent with floating elements -->
+  <div class="absolute top-0 left-0 right-0 z-50 pt-3 pb-3 pointer-events-none">
+    <div class="flex items-center justify-between px-6 pointer-events-auto">
+      <div class="flex items-center gap-4">
+        <!-- Sidebar Toggle -->
+        <p-button 
+          [icon]="sidebarVisible() ? 'pi pi-times' : 'pi pi-bars'"
+          [text]="true"
+          severity="secondary"
+          (onClick)="toggleSidebar()"
+          [class]="sidebarToggleClasses()"
+          [attr.aria-expanded]="sidebarVisible()"
+          aria-label="Toggle sidebar"
+        />
+        
+        <!-- Doodle-style Title -->
+        <h1 class="doodle-title text-3xl font-bold text-surface-900 m-0 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-lg shadow-sm">SquiggleSync</h1>
+        
+        <p-divider layout="vertical" class="h-6 bg-surface-300/50" />
+        
+        <div class="flex items-center gap-2">
+          <input 
+            type="text"
+            pInputText
+            [value]="roomId()" 
+            placeholder="Room ID"
+            class="w-40 bg-white/90 backdrop-blur-sm border-surface-300 shadow-sm"
+            readonly
+          />
+          <p-button 
+            icon="pi pi-copy" 
+            [text]="true"
+            severity="secondary"
+            (onClick)="copyRoomLink()"
+            pTooltip="Copy room link"
+            aria-label="Copy room link"
+            class="text-surface-600 hover:text-surface-900 bg-white/90 backdrop-blur-sm hover:bg-white shadow-sm"
+          />
+        </div>
+      </div>
+      
+      <div class="flex items-center gap-3">
+        <p-tag 
+          [value]="connectionStatus()" 
+          [severity]="connectionSeverity()"
+          [icon]="connectionIcon()"
+          class="bg-white/90 backdrop-blur-sm shadow-sm"
+        />
+        <p-badge [value]="userCount()" severity="info">
+          <p-button 
+            icon="pi pi-users" 
+            [text]="true"
+            severity="secondary"
+            aria-label="Active users"
+            class="text-surface-600 hover:text-surface-900 bg-white/90 backdrop-blur-sm hover:bg-white shadow-sm"
+          />
+        </p-badge>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Sidebar - Modern Design -->
+  <div 
+    class="absolute top-0 left-0 h-screen z-30 pt-16 transition-all duration-300 ease-in-out"
+    [class.translate-x-0]="sidebarVisible()"
+    [class.-translate-x-full]="!sidebarVisible()"
+    [class.opacity-100]="sidebarVisible()"
+    [class.opacity-0]="!sidebarVisible()"
+    [class.pointer-events-auto]="sidebarVisible()"
+    [class.pointer-events-none]="!sidebarVisible()"
+  >
+    <div class="w-80 h-full overflow-y-auto px-5 py-6 space-y-6">
+      <!-- Modern Tool Selection Section -->
+      <div class="sidebar-card bg-white/95 backdrop-blur-md rounded-xl shadow-lg p-5 border border-surface-200/60">
+        <div class="flex items-center gap-2 mb-4">
+          <i class="pi pi-pencil text-surface-600"></i>
+          <label class="doodle-label text-sm font-semibold text-surface-800">Tools</label>
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <button
+            type="button"
+            (click)="selectTool('pen')"
+            [class]="penButtonClasses()"
+            [attr.aria-pressed]="selectedTool() === 'pen'"
+            aria-label="Select pen tool"
+          >
+            <i class="pi pi-pencil text-xl"></i>
+            <span class="text-xs font-medium">Pen</span>
+          </button>
+          <button
+            type="button"
+            (click)="selectTool('eraser')"
+            [class]="eraserButtonClasses()"
+            [attr.aria-pressed]="selectedTool() === 'eraser'"
+            aria-label="Select eraser tool"
+          >
+            <i class="pi pi-eraser text-xl"></i>
+            <span class="text-xs font-medium">Eraser</span>
+          </button>
+          <button
+            type="button"
+            (click)="selectTool('clear')"
+            [class]="clearButtonClasses()"
+            [attr.aria-pressed]="selectedTool() === 'clear'"
+            aria-label="Clear canvas"
+          >
+            <i class="pi pi-trash text-xl"></i>
+            <span class="text-xs font-medium">Clear</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Color & Stroke Settings -->
+      @if (penToolSelected()) {
+        <!-- Modern Color Picker Section -->
+        <div class="sidebar-card bg-white/95 backdrop-blur-md rounded-xl shadow-lg p-5 border border-surface-200/60">
+          <div class="flex items-center gap-2 mb-4">
+            <i class="pi pi-palette text-surface-600"></i>
+            <label for="color-picker" class="doodle-label text-sm font-semibold text-surface-800">Color</label>
+          </div>
+          <div class="space-y-3">
+            <!-- Color Preview Swatch -->
+            <div class="flex items-center gap-3">
+              <div 
+                class="color-swatch w-14 h-14 rounded-lg border-2 border-surface-300 shadow-sm flex-shrink-0"
+                [style.background-color]="color()"
+              ></div>
+              <div class="flex-1">
+                <span class="text-xs text-surface-500 font-mono">{{ color() }}</span>
+              </div>
+            </div>
+            <!-- Inline Color Picker -->
+            <div class="relative">
+              <p-colorpicker 
+                id="color-picker"
+                [ngModel]="color()"
+                (ngModelChange)="updateColor($event)"
+                [inline]="true"
+                format="hex"
+                aria-label="Select drawing color"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Modern Stroke Width Section -->
+        <div class="sidebar-card bg-white/95 backdrop-blur-md rounded-xl shadow-lg p-5 border border-surface-200/60">
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+              <i class="pi pi-minus text-surface-600"></i>
+              <label for="stroke-slider" class="doodle-label text-sm font-semibold text-surface-800">Stroke Width</label>
+            </div>
+            <span class="text-sm font-semibold text-primary bg-primary/10 px-3 py-1 rounded-full" aria-live="polite">
+              {{ strokeWidth() }}px
+            </span>
+          </div>
+          <div class="space-y-2">
+            <p-slider 
+              id="stroke-slider"
+              [ngModel]="strokeWidth()"
+              (ngModelChange)="updateStrokeWidth($event)"
+              [min]="1"
+              [max]="20"
+              class="w-full"
+              aria-label="Adjust stroke width"
+              [aria-valuemin]="1"
+              [aria-valuemax]="20"
+              [aria-valuenow]="strokeWidth()"
+            />
+            <div class="flex justify-between text-xs text-surface-500">
+              <span>1px</span>
+              <span>20px</span>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Name Input Modal -->
+  <p-dialog 
+    [visible]="showNameModal()"
+    (visibleChange)="showNameModal.set($event)"
+    [modal]="true"
+    [closable]="!!roomLink()"
+    [draggable]="false"
+    [resizable]="false"
+    [style]="{ width: '90%', maxWidth: '520px' }"
+    [styleClass]="'name-modal'"
+    (onHide)="closeModal()"
+  >
+    <div class="modal-content-wrapper">
+      <!-- Welcome Header - Always visible -->
+      <div class="modal-header-content">
+        <h2 class="doodle-title text-3xl font-bold text-surface-900 m-0 mb-3">
+          @if (roomLink()) {
+            Room Created!
+          } @else {
+            Welcome to SquiggleSync
+          }
+        </h2>
+        @if (!roomLink()) {
+          <p class="doodle-text text-base text-surface-600 m-0 leading-relaxed mb-4">
+            🎨 Your creative playground where ideas come to life! Draw, doodle, and collaborate in real-time with friends. 
+            Think of it as a digital whiteboard that never runs out of space... or markers! ✏️
+          </p>
+        }
+      </div>
+      @if (!roomLink()) {
+        <!-- Name Input Form -->
+        <div class="modal-form">
+          <div class="modal-separator"></div>
+          <div class="form-group">
+            <label for="name-input" class="doodle-label form-label">
+              Enter your name
+            </label>
+            <input
+              id="name-input"
+              type="text"
+              pInputText
+              [ngModel]="nameInput()"
+              (ngModelChange)="nameInput.set($event)"
+              placeholder="Your name"
+              class="form-input"
+              (keyup.enter)="onSubmitName()"
+              autofocus
+            />
+          </div>
+          <p-button
+            label="Create Room"
+            icon="pi pi-check"
+            (onClick)="onSubmitName()"
+            [disabled]="!nameInput().trim()"
+            class="w-full create-room-button"
+            styleClass="p-button-primary"
+          />
+        </div>
+      } @else {
+        <!-- Room Link Display -->
+        <div class="room-link-section">
+          <div class="room-link-container">
+            <p class="doodle-text room-link-info">
+              <i class="pi pi-info-circle text-primary"></i>
+              <span>This is your room link. Share it with others to collaborate and create together! 🎉</span>
+            </p>
+            <div class="room-link-input-group">
+              <input
+                type="text"
+                pInputText
+                [value]="roomLink()"
+                readonly
+                class="room-link-input"
+              />
+              <p-button
+                [icon]="linkCopied() ? 'pi pi-check' : 'pi pi-copy'"
+                [text]="true"
+                severity="secondary"
+                (onClick)="copyRoomLink()"
+                [pTooltip]="linkCopied() ? 'Copied!' : 'Copy link'"
+                aria-label="Copy room link"
+                class="copy-button"
+              />
+            </div>
+            @if (linkCopied()) {
+              <p class="copy-success-message">
+                <i class="pi pi-check-circle"></i>
+                Link copied to clipboard!
+              </p>
+            }
+          </div>
+          <p-button
+            label="Start Drawing"
+            icon="pi pi-arrow-right"
+            (onClick)="closeModal()"
+            class="w-full create-room-button"
+            styleClass="p-button-primary"
+          />
+        </div>
+      }
+    </div>
+  </p-dialog>
+</div>

@@ -1,13 +1,26 @@
 import { Routes } from '@angular/router';
+import { Whiteboard } from './pages/whiteboard/whiteboard';
 
+/**
+ * Application Routes
+ * 
+ * Routes are eager-loaded (not lazy-loaded) as per requirements.
+ * All components are standalone (Angular 21 default).
+ */
 export const routes: Routes = [
   {
-    path: 'ui/whiteboard',
-    loadComponent: () => import('./ui/whiteboard-mock/whiteboard-mock.component').then(m => m.WhiteboardMockComponent)
+    path: '',
+    component: Whiteboard,
+    title: 'SquiggleSync - Whiteboard'
   },
   {
-    path: '',
-    redirectTo: 'ui/whiteboard',
+    path: 'whiteboard/:roomId',
+    component: Whiteboard,
+    title: 'SquiggleSync - Whiteboard'
+  },
+  {
+    path: '**',
+    redirectTo: '/',
     pathMatch: 'full'
   }
 ];
