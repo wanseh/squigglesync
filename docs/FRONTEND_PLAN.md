@@ -119,7 +119,8 @@ squigglesync-frontend/
 │   │   │   ├── store/                     # Signal-based state store
 │   │   │   │   ├── whiteboard.store.ts    # Whiteboard state (events, room, etc.)
 │   │   │   │   ├── connection.store.ts    # WebSocket connection state
-│   │   │   │   └── user.store.ts          # User/session state
+│   │   │   │   ├── user.store.ts          # User/session state
+│   │   │   │   └── viewport.store.ts      # Canvas viewport state (pan, zoom) - Phase 7
 │   │   │   │
 │   │   │   ├── services/
 │   │   │   │   ├── websocket.service.ts   # WebSocket connection (RxJS streams)
@@ -128,7 +129,8 @@ squigglesync-frontend/
 │   │   │   │
 │   │   │   └── utils/
 │   │   │       ├── canvas.util.ts         # Canvas utility functions
-│   │   │       └── event.util.ts          # Event utility functions
+│   │   │       ├── event.util.ts          # Event utility functions
+│   │   │       └── viewport.util.ts       # Viewport coordinate transformations - Phase 7
 │   │   │
 │   │   ├── features/
 │   │   │   ├── whiteboard/
@@ -329,6 +331,46 @@ squigglesync-frontend/
 - Polished, production-ready UI
 - Good user experience
 - Responsive design
+
+---
+
+### Phase 7: Canvas Navigation (Pan & Zoom)
+**Goal**: Implement Figma-like canvas navigation with pan, zoom, and viewport management
+
+**Tasks**:
+1. Canvas Viewport Management
+   - Viewport state (position, zoom level)
+   - Canvas coordinate system transformation
+   - Viewport bounds calculation
+   - Infinite canvas support
+
+2. Pan/Drag Functionality
+   - Mouse drag to pan canvas
+   - Touch drag to pan canvas
+   - Spacebar + drag (optional)
+   - Pan boundaries (optional)
+   - Smooth panning with momentum (optional)
+
+3. Zoom Functionality
+   - Mouse wheel zoom
+   - Pinch-to-zoom (touch)
+   - Zoom controls (UI buttons)
+   - Zoom to fit / Zoom to selection
+   - Zoom limits (min/max)
+   - Zoom center point management
+
+4. Viewport State Management
+   - Store viewport state in signals
+   - Persist viewport state (optional)
+   - Sync viewport across users (optional)
+   - Viewport indicators (mini-map, grid)
+
+**Deliverables**:
+- User can pan/drag canvas to navigate
+- User can zoom in/out on canvas
+- Smooth navigation experience
+- Viewport state managed reactively
+- Works with mouse and touch
 
 ---
 
@@ -752,6 +794,115 @@ squigglesync-frontend/
 
 ---
 
+### Phase 7: Canvas Navigation
+
+#### Task 7.1: Viewport State Management
+- [ ] Create `core/store/viewport.store.ts`
+  - `position = signal<[number, number]>([0, 0])` - Viewport position (x, y)
+  - `zoom = signal<number>(1)` - Zoom level (1 = 100%)
+  - `minZoom = signal<number>(0.1)` - Minimum zoom level
+  - `maxZoom = signal<number>(5)` - Maximum zoom level
+  - `setPosition(x, y): void` - Set viewport position
+  - `setZoom(level, centerPoint?): void` - Set zoom level with optional center point
+  - `resetViewport(): void` - Reset to default position and zoom
+- [ ] Create viewport utilities
+  - `core/utils/viewport.util.ts`
+  - `screenToCanvas(x, y, viewport): [number, number]` - Convert screen coords to canvas
+  - `canvasToScreen(x, y, viewport): [number, number]` - Convert canvas coords to screen
+  - `getViewportBounds(viewport, canvasSize): {x, y, width, height}` - Get visible area
+- [ ] Use `computed()` for derived viewport state
+
+**Testing**:
+- Viewport state updates reactively
+- Coordinate transformations work correctly
+- Viewport bounds calculated correctly
+
+---
+
+#### Task 7.2: Pan/Drag Implementation
+- [ ] Add pan state to whiteboard component
+  - `isPanning = signal<boolean>(false)`
+  - `panStartPosition = signal<[number, number] | null>(null)`
+  - `lastPanPosition = signal<[number, number] | null>(null)`
+- [ ] Implement mouse pan handlers
+  - `onMouseDown()` - Detect pan mode (middle mouse, spacebar, or dedicated pan tool)
+  - `onMouseMove()` - Update viewport position while panning
+  - `onMouseUp()` - End panning
+- [ ] Implement touch pan handlers
+  - `onTouchStart()` - Detect two-finger pan or dedicated pan gesture
+  - `onTouchMove()` - Update viewport position
+  - `onTouchEnd()` - End panning
+- [ ] Add pan tool to toolbar
+  - Pan tool button (hand icon)
+  - Toggle between draw mode and pan mode
+- [ ] Update canvas service to apply viewport transform
+  - Apply translation and scale before rendering
+  - Transform coordinates for drawing operations
+
+**Testing**:
+- Can pan canvas with mouse drag
+- Can pan canvas with touch drag
+- Pan tool works correctly
+- Drawing coordinates transform correctly during pan
+
+---
+
+#### Task 7.3: Zoom Implementation
+- [ ] Implement mouse wheel zoom
+  - `onWheel(event: WheelEvent)` - Handle wheel events
+  - Zoom in/out based on wheel delta
+  - Zoom centered on mouse position
+  - Respect min/max zoom limits
+- [ ] Implement pinch-to-zoom (touch)
+  - `onTouchStart()` - Detect two-finger pinch
+  - `onTouchMove()` - Calculate pinch distance and zoom
+  - `onTouchEnd()` - End zoom gesture
+  - Zoom centered on pinch center point
+- [ ] Add zoom controls UI
+  - Zoom in button (+)
+  - Zoom out button (-)
+  - Zoom level display (e.g., "100%")
+  - Zoom to fit button
+  - Reset zoom button
+- [ ] Update canvas service for zoom
+  - Apply scale transformation
+  - Maintain drawing quality at different zoom levels
+  - Update coordinate transformations
+
+**Testing**:
+- Mouse wheel zoom works
+- Pinch-to-zoom works on touch devices
+- Zoom controls work
+- Zoom limits enforced
+- Drawing quality maintained at all zoom levels
+
+---
+
+#### Task 7.4: Viewport Integration
+- [ ] Integrate viewport with canvas rendering
+  - Apply viewport transform in canvas service
+  - Update all drawing operations to use viewport coordinates
+  - Ensure events render at correct positions
+- [ ] Add viewport indicators (optional)
+  - Mini-map showing canvas overview
+  - Grid overlay (optional)
+  - Viewport bounds indicator
+- [ ] Handle viewport state persistence (optional)
+  - Save viewport state to localStorage
+  - Restore viewport on page reload
+- [ ] Sync viewport across users (optional)
+  - Broadcast viewport changes via WebSocket
+  - Receive and apply viewport updates from other users
+  - Handle viewport conflicts
+
+**Testing**:
+- Canvas renders correctly with viewport transform
+- Drawing works at all zoom levels and positions
+- Viewport state persists (if implemented)
+- Viewport syncs across users (if implemented)
+
+---
+
 ## Testing Strategy
 
 ### Unit Tests
@@ -876,6 +1027,7 @@ ws://localhost:3000
 6. **User Interaction** → Mouse/touch, drawing
 7. **Real-Time Sync** → WebSocket integration
 8. **UI Polish** → Styling, room management
+9. **Canvas Navigation** → Pan, zoom, viewport management
 
 ---
 
@@ -920,6 +1072,19 @@ ws://localhost:3000
 - Use requestAnimationFrame for canvas updates
 - OnPush change detection for all components
 - Signals are more performant than observables for simple state
+
+### Canvas Navigation (Pan & Zoom)
+- Viewport state managed with signals (position, zoom)
+- Transform coordinates between screen and canvas space
+- Apply viewport transform before rendering all events
+- Maintain drawing quality at all zoom levels
+- Pan mode: Middle mouse button, spacebar+drag, or dedicated pan tool
+- Zoom: Mouse wheel, pinch-to-zoom, or zoom controls
+- Zoom limits: Typically 0.1x (10%) to 5x (500%)
+- Zoom center: Zoom towards mouse position or pinch center
+- Optional: Mini-map for navigation overview
+- Optional: Viewport state persistence (localStorage)
+- Optional: Viewport sync across users (requires WebSocket)
 
 ---
 
@@ -1026,6 +1191,9 @@ import { Slider } from 'primeng/slider';
 ✅ UI is polished and responsive with PrimeNG Aura  
 ✅ Consistent design system using PrimeNG components  
 ✅ Dark mode support (optional)  
+✅ User can pan/drag canvas to navigate (Phase 7)  
+✅ User can zoom in/out on canvas (Phase 7)  
+✅ Smooth navigation experience like Figma (Phase 7)  
 
 ---
 
