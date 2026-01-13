@@ -4,3 +4,4 @@
  */
 export * from './websocket.service';
 export * from './event.service';
+export * from './canvas.service';

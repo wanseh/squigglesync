@@ -1,6 +1,6 @@
 import { Component, inject, effect, ChangeDetectionStrategy, OnInit, OnDestroy } from '@angular/core';
 import { ConnectionStore, UserStore, WhiteboardStore } from './core/store';
-import { WebsocketService } from './core/services/websocket.service';
+import { WebSocketService } from './core/services/websocket.service';
 import { EventService } from './core/services/event.service';
 import { Subscription } from 'rxjs';
 
@@ -97,7 +97,7 @@ export class TestStoresComponent implements OnInit, OnDestroy {
   connectionStore = inject(ConnectionStore);
   userStore = inject(UserStore);
   whiteboardStore = inject(WhiteboardStore);
-  websocketService = inject(WebsocketService);
+  websocketService = inject(WebSocketService);
   eventService = inject(EventService);
   
   private subscriptions = new Subscription();

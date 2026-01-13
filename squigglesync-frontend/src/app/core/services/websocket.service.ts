@@ -46,7 +46,7 @@ import {
 @Injectable({
   providedIn: 'root',
 })
-export class WebsocketService {
+export class WebSocketService {
   private connectionStore = inject(ConnectionStore);
   
   private webSocket: WebSocket | null = null;
