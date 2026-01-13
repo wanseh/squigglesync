@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { Whiteboard } from './pages/whiteboard/whiteboard';
+import { TestStoresComponent } from './test-stores.component';
 
 /**
  * Application Routes
@@ -17,6 +18,11 @@ export const routes: Routes = [
     path: 'whiteboard/:roomId',
     component: Whiteboard,
     title: 'SquiggleSync - Whiteboard'
+  },
+  {
+    path: 'test-stores',
+    component: TestStoresComponent,
+    title: 'Test Stores'
   },
   {
     path: '**',

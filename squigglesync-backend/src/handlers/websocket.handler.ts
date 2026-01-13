@@ -87,10 +87,14 @@ export class WebSocketHandler {
     }
 
     private handleMessage(socket: WebSocket, message: any): void {
+        const startTime = Date.now();
+        
         if (!message.type) {
             this.sendError(socket, 'Message type is required');
             return;
         }
+
+        console.debug(`Received message: ${message.type}`);
 
         switch (message.type) {
             case 'JOIN_ROOM':
@@ -106,8 +110,12 @@ export class WebSocketHandler {
                 this.handleWhiteboardEvent(socket, message);
                 break;
             default:
+                console.warn(`Unknown message type: ${message.type}`);
                 this.sendError(socket, `Unknown message type: ${message.type}`);
         }
+        
+        const duration = Date.now() - startTime;
+        console.debug(`Processed message: ${message.type} (${duration}ms)`);
     }
 
     /**
@@ -124,8 +132,11 @@ export class WebSocketHandler {
      * → Logs: "Processed event: DRAW_LINE in room { roomId }"
      */
     private handleWhiteboardEvent(socket: WebSocket, message: any): void {
+        const startTime = Date.now();
+        
         const roomId = this.websocketRooms.getClientRoom(socket);
         if (!roomId) {
+            console.warn('Event received but client not in a room');
             this.sendError(socket, 'Not in a room');
             return;
         }
@@ -140,6 +151,7 @@ export class WebSocketHandler {
         };
 
         if (!validateEvent(candidateEvent)) {
+            console.error('Invalid event received:', candidateEvent);
             this.sendError(socket, 'Invalid event');
             return;
         }
@@ -155,6 +167,7 @@ export class WebSocketHandler {
         const processedEvent = this.roomState.processEvent(roomId, event);
 
         if (!processedEvent) {
+            console.warn(`Event rejected due to conflict resolution: ${event.type} in room ${roomId}`);
             this.sendError(socket, 'Event rejected due to conflict resolution');
             return;
         }
@@ -167,7 +180,8 @@ export class WebSocketHandler {
             payload: processedEvent
         });
 
-        console.log(`Processed event: ${processedEvent.type} in room ${roomId}`);
+        const duration = Date.now() - startTime;
+        console.debug(`Processed event: ${processedEvent.type} in room ${roomId} (${duration}ms)`);
     }
 
     /**
@@ -204,6 +218,7 @@ export class WebSocketHandler {
      * → Logs: "Client { userId } joined room { roomId }."
      */
     private handleJoinRoom(socket: WebSocket, message: any): void {
+        const startTime = Date.now();
         const { roomId, userId } = message;
 
         if (!roomId) {
@@ -226,13 +241,15 @@ export class WebSocketHandler {
             }
         })
 
-        console.log(`Client ${userId} joined room ${roomId}. ${connections.size} clients in room.`);
+        const duration = Date.now() - startTime;
+        console.log(`Client ${userId} joined room ${roomId}. ${connections.size} clients in room. (${duration}ms)`);
     }
 
     private handleDisconnection(socket: WebSocket): void {
+        const sessionId = this.sessions.get(socket);
         this.websocketRooms.removeClient(socket);
         this.sessions.delete(socket);
-        console.log(`WebSocket disconnected: ${this.sessions.get(socket)}`);
+        console.log(`WebSocket disconnected: ${sessionId || 'unknown'}`);
     }
 
 

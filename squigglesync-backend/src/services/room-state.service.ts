@@ -72,7 +72,7 @@ export class RoomStateService {
      */
     processEvent(roomId: string, event: WhiteboardEvent): WhiteboardEvent | null {
         this.activeRooms.add(roomId);
-        console.log(`Room ${roomId} is now active`, Array.from(this.activeRooms));
+        console.debug(`Room ${roomId} is now active`, Array.from(this.activeRooms));
 
         const existingEvents = this.eventStore.getEvents(roomId);
         const resolvedEvent = this.conflictResolver.resolveConflict(existingEvents, event);

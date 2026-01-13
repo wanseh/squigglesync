@@ -3,8 +3,13 @@ import dotenv from 'dotenv';
 import { createServer } from 'http';
 import apiRouter from './api';
 import { setupWebSocket } from './setup/websocket.setup';
+import { setupLogger } from './utils/logger.util';
+import { logMiddleware } from './middleware/log.middleware';
 
 dotenv.config();
+
+// Setup automatic timestamp logging for all console methods
+setupLogger();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -14,7 +19,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Non-API routes (health, status, etc.)
-app.get('/health', (req, res) => {
+app.get('/health', logMiddleware, (req, res) => {
     res.status(200).json({ message: 'Server is running' });
 });
 

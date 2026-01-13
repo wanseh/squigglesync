@@ -111,7 +111,7 @@ export class WebSocketRoomsService {
             }
         })
 
-        console.log(`Broadcast to room ${roomId}: ${sentCount} clients.`); 
+        console.debug(`Broadcast to room ${roomId}: ${sentCount} clients.`); 
     }
 
     /**
