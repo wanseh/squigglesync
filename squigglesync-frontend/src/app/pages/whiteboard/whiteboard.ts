@@ -73,6 +73,11 @@ export class Whiteboard {
   canvasHeight = signal<number>(0);
   private isDrawing = signal<boolean>(false);
   private currentPoints = signal<[number, number][]>([]);
+  
+  // Custom cursor position (for eraser tool)
+  cursorX = signal<number>(0);
+  cursorY = signal<number>(0);
+  showCustomCursor = signal<boolean>(false);
 
   // ============================================================================
   // DRAWING TOOLS & SETTINGS
@@ -126,14 +131,31 @@ export class Whiteboard {
    * 
    * Returns appropriate cursor class for the current tool.
    * - Pen tool: crosshair cursor
-   * - Eraser tool: custom eraser cursor (SVG icon)
+   * - Eraser tool: none (we use custom cursor element instead)
    */
   canvasCursor = computed<string>(() => {
     const tool = this.selectedTool();
     if (tool === 'eraser') {
-      return 'cursor-eraser';
+      return 'cursor-none'; // Hide default cursor, use custom element
     }
     return 'cursor-crosshair';
+  });
+
+  /**
+   * Computed signal: Custom cursor size based on eraser size
+   * 
+   * Scales the cursor icon proportionally to eraser size.
+   */
+  customCursorSize = computed<number>(() => {
+    const size = this.eraserSize();
+    // Scale cursor icon: min 24px, max 80px, proportional to eraser size (5-100px)
+    // Formula: base size (24px) + (eraserSize - minEraserSize) * scale factor
+    const minSize = 24;
+    const maxSize = 80;
+    const minEraser = 5;
+    const maxEraser = 100;
+    const scaleFactor = (maxSize - minSize) / (maxEraser - minEraser);
+    return Math.max(minSize, Math.min(maxSize, minSize + (size - minEraser) * scaleFactor));
   });
 
   // ============================================================================
@@ -155,20 +177,31 @@ export class Whiteboard {
       this.eventService.processMessage(message);
     })
 
-    // React to events changes and re-render canvas
-    effect(() => {
-      const events = this.whiteboardStore.sortedEvents();
-      if (this.canvasService.isReady() && events.length > 0) {
-        this.canvasService.renderAllEvents(events);
-      }
-    });
-
-    // Handle window resize
-    if (typeof window !== 'undefined') {
-      window.addEventListener('resize', () => {
-        this.updateCanvasSize();
+      // React to events changes and re-render canvas
+      effect(() => {
+        const events = this.whiteboardStore.sortedEvents();
+        if (this.canvasService.isReady() && events.length > 0) {
+          this.canvasService.renderAllEvents(events);
+        }
       });
-    }
+
+      // Update custom cursor visibility based on selected tool
+      effect(() => {
+        const tool = this.selectedTool();
+        this.showCustomCursor.set(tool === 'eraser');
+      });
+
+      // Handle window resize
+      if (typeof window !== 'undefined') {
+        window.addEventListener('resize', () => {
+          this.updateCanvasSize();
+        });
+
+        // Track mouse movement for custom cursor
+        window.addEventListener('mousemove', (event: MouseEvent) => {
+          this.updateCustomCursorPosition(event);
+        });
+      }
 
     // Handle route param changes (room ID)
     effect(() => {
@@ -279,6 +312,9 @@ export class Whiteboard {
    * Starts drawing when user presses mouse button.
    */
   onMouseDown(event: MouseEvent): void {
+    // Update cursor position
+    this.updateCustomCursorPosition(event);
+
     if (!this.canvasService.isReady()) {
       return;
     }
@@ -298,8 +334,12 @@ export class Whiteboard {
    * 
    * Adds points to current drawing while mouse is pressed.
    * Draws optimistically (will be replaced by event rendering in Phase 4).
+   * Also updates custom cursor position for eraser tool.
    */
   onMouseMove(event: MouseEvent): void {
+    // Update custom cursor position
+    this.updateCustomCursorPosition(event);
+
     if (!this.isDrawing() || !this.canvasService.isReady()) {
       return;
     }
@@ -326,7 +366,7 @@ export class Whiteboard {
       );
     } else if (tool === 'eraser' && points.length >= 2) {
       const lastPoint = points[points.length - 1];
-      const eraseSize = this.strokeWidth() * 2;
+      const eraseSize = this.eraserSize();
       this.canvasService.erase({
         x: lastPoint[0] - eraseSize / 2,
         y: lastPoint[1] - eraseSize / 2,
@@ -493,17 +533,37 @@ export class Whiteboard {
    * Handle erase completion
    * 
    * Creates ERASE event for the bounding rectangle of erased points.
+   * The erase region is calculated based on the path drawn plus the eraser size.
+   * For large eraser sizes, we ensure the region accurately represents what was erased.
    */
   private handleErase(points: [number, number][]): void {
     if (points.length === 0) {
       return;
     }
 
-    // Calculate bounding rectangle for erase region
     const eraseSize = this.eraserSize();
     const boundingRect = getBoundingRect(points);
     
-    // Expand region by erase size
+    // If there's only one point or points are very close, create a square erase region
+    if (points.length === 1 || (boundingRect.width < eraseSize && boundingRect.height < eraseSize)) {
+      const point = points[0];
+      const region = {
+        x: Math.max(0, point[0] - eraseSize / 2),
+        y: Math.max(0, point[1] - eraseSize / 2),
+        width: eraseSize,
+        height: eraseSize
+      };
+      
+      const event = this.eventService.createEraseEvent(region);
+      this.whiteboardStore.addEvent(event);
+      if (this.connectionStore.isConnected()) {
+        this.wsService.send(event);
+      }
+      return;
+    }
+    
+    // For multiple points, expand bounding box by half eraser size on each side
+    // This ensures the erase area matches what the user sees while drawing
     const region = {
       x: Math.max(0, boundingRect.x - eraseSize / 2),
       y: Math.max(0, boundingRect.y - eraseSize / 2),
@@ -576,6 +636,16 @@ export class Whiteboard {
   updateEraserSize(newSize: number): void {
     const clampedValue = Math.max(5, Math.min(100, newSize));
     this.eraserSize.set(clampedValue);
+  }
+
+  /**
+   * Update custom cursor position
+   * 
+   * Tracks mouse position for custom eraser cursor display.
+   */
+  private updateCustomCursorPosition(event: MouseEvent): void {
+    this.cursorX.set(event.clientX);
+    this.cursorY.set(event.clientY);
   }
 
   // ============================================================================

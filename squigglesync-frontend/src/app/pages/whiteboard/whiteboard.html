@@ -16,7 +16,7 @@
       #canvas
       class="absolute inset-0 w-full h-full"
       [class.cursor-crosshair]="canvasCursor() === 'cursor-crosshair'"
-      [class.cursor-eraser]="canvasCursor() === 'cursor-eraser'"
+      [class.cursor-none]="canvasCursor() === 'cursor-none'"
       [width]="canvasWidth()"
       [height]="canvasHeight()"
       (mousedown)="onMouseDown($event)"
@@ -27,6 +27,32 @@
       (touchmove)="onTouchMove($event)"
       (touchend)="onTouchEnd($event)"
     ></canvas>
+
+    <!-- Custom Eraser Cursor -->
+    @if (showCustomCursor()) {
+      <div
+        class="custom-eraser-cursor"
+        [style.left.px]="cursorX()"
+        [style.top.px]="cursorY()"
+        [style.width.px]="customCursorSize()"
+        [style.height.px]="customCursorSize()"
+      >
+        <svg
+          [attr.width]="customCursorSize()"
+          [attr.height]="customCursorSize()"
+          viewBox="0 -0.5 17 17"
+          xmlns="http://www.w3.org/2000/svg"
+          class="eraser-icon"
+        >
+          <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+            <g transform="translate(1.000000, 0.000000)" fill="#434343">
+              <path d="M8.932,13.014 L2.958,7.039 L9.84,0.158 C10.162,-0.167 10.696,-0.156 11.031,0.18 L15.793,4.939 C16.127,5.275 16.138,5.808 15.814,6.13 L8.932,13.014 L8.932,13.014 Z"></path>
+              <path d="M7.963,14.11 C6.381,15.693 2.529,14.41 0.861,12.742 C-0.805,11.075 0.341,9.655 1.924,8.072 L7.963,14.11 L7.963,14.11 Z"></path>
+            </g>
+          </g>
+        </svg>
+      </div>
+    }
   </div>
 
   <!-- Floating Header Overlay - Transparent with floating elements -->
