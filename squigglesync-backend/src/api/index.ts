@@ -35,13 +35,12 @@ const productionRoutes = routeGroup(
       router.use('/rooms', roomsRouter);
     }
   );
-  
 
-// Mount the room state router
-router.use('/room-state', logMiddleware, roomStateRouter);
-
-// Mount the route group
-router.use('/test', testRoutes); // All test endpoints under /api/test
+// Mount the route groups
+// Test routes - only mount in development
+if (process.env.NODE_ENV !== 'production') {
+  router.use('/test', testRoutes); // All test endpoints under /api/test
+}
 router.use(productionRoutes); // Production endpoints under /api
 
 export default router;

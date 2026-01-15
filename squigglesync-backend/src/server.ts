@@ -5,6 +5,7 @@ import apiRouter from './api';
 import { setupWebSocket } from './setup/websocket.setup';
 import { setupLogger } from './utils/logger.util';
 import { logMiddleware } from './middleware/log.middleware';
+import { errorHandler } from './middleware/error.middleware';
 
 dotenv.config();
 
@@ -26,6 +27,9 @@ app.get('/health', logMiddleware, (req, res) => {
 // API routes
 app.use('/api', apiRouter);
 
+// Global error handler (must be last)
+app.use(errorHandler);
+
 // Create HTTP server
 const server = createServer(app);
 
@@ -37,4 +41,17 @@ server.listen(PORT, () => {
     console.log(`HTTP server running on http://localhost:${PORT}`);
     console.log(`WebSocket server running on ws://localhost:${PORT}`);
     console.log(`API endpoints: http://localhost:${PORT}/api`);
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (reason: Error) => {
+    console.error('Unhandled Rejection:', reason);
+    // In production, you might want to gracefully shutdown
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (error: Error) => {
+    console.error('Uncaught Exception:', error);
+    // In production, you might want to gracefully shutdown
+    process.exit(1);
 });

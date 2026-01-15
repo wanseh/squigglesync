@@ -1,0 +1,110 @@
+// Doodle-style fonts - Professional handwritten look
+@import url('https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&family=Caveat:wght@400;600;700&display=swap');
+
+// Doodle Text - For body text
+.doodle-text {
+  font-family: 'Kalam', 'Caveat', cursive, sans-serif;
+  font-weight: 400;
+}
+
+// Doodle Label - For form labels
+.doodle-label {
+  font-family: 'Kalam', cursive, sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.3px;
+}
+
+// Modern Sidebar Styles
+.sidebar-card {
+  backdrop-filter: blur(12px);
+  transition: all 0.2s ease;
+  
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+}
+
+// Tool Button Styles
+.tool-button {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover:not(.active) {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  &.active {
+    transform: scale(1.02);
+  }
+}
+
+// Color Preview Swatch
+.color-swatch {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+}
+
+// PrimeNG component overrides
+::ng-deep {
+  .p-card {
+    .p-card-body {
+      @apply flex flex-col;
+    }
+  }
+  
+  // Make buttons blend with transparent header
+  .p-button.p-button-text {
+    background: transparent;
+    
+    &:hover {
+      background: rgba(0, 0, 0, 0.04);
+    }
+  }
+  
+  // Modernize slider
+  .p-slider {
+    .p-slider-handle {
+      transition: all 0.2s ease;
+      
+      &:hover {
+        transform: scale(1.1);
+      }
+      
+      &:focus {
+        box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.1);
+      }
+    }
+  }
+  
+  // Color picker styling - Fix popup positioning
+  .p-colorpicker {
+    width: 100%;
+    
+    .p-colorpicker-preview {
+      border-radius: 8px;
+      transition: transform 0.2s ease;
+      
+      &:hover {
+        transform: scale(1.05);
+      }
+    }
+    
+    // Fix inline color picker layout
+    &.p-colorpicker-inline {
+      .p-colorpicker-panel {
+        width: 100%;
+        border-radius: 8px;
+      }
+    }
+    
+    // Fix popup z-index if using popup mode
+    .p-colorpicker-overlay {
+      z-index: 9999 !important;
+    }
+  }
+}
+

@@ -1,4 +1,6 @@
 import { WhiteboardEvent } from '../types/events';
+import { CONFLICT_RESOLVER } from '../config/constants';
+
 /**
  * ConflictResolverService
  * 
@@ -46,7 +48,7 @@ import { WhiteboardEvent } from '../types/events';
  * Result: Canvas cleared (normal operation)
  */
 export class ConflictResolverService {
-    private readonly CLEAR_COOLDOWN_MS = 1000;
+    private readonly CLEAR_COOLDOWN_MS = CONFLICT_RESOLVER.CLEAR_COOLDOWN_MS;
 
     /**
      * Resolve conflicts between existing events and a new event

@@ -6,8 +6,6 @@ import { toSignal } from '@angular/core/rxjs-interop';
 
 // PrimeNG Components
 import { Button } from 'primeng/button';
-import { ColorPicker } from 'primeng/colorpicker';
-import { Slider } from 'primeng/slider';
 import { Tag } from 'primeng/tag';
 import { Divider } from 'primeng/divider';
 import { InputTextModule } from 'primeng/inputtext';
@@ -25,6 +23,7 @@ import { UserStore } from '../../core/store/user.store';
 import { ConnectionStore } from '../../core/store/connection.store';
 import { getBoundingRect } from '../../core/utils/canvas.util';
 import { EventMessage, RoomJoinedMessage } from '@app/core/models/server-message.model';
+import { ToolbarComponent } from '../../features';
 
 type DrawingTool = 'pen' | 'eraser' | 'clear';
 type ConnectionSeverity = 'success' | 'danger';
@@ -36,14 +35,13 @@ type TagIcon = 'pi pi-check-circle' | 'pi pi-times-circle';
     CommonModule,
     FormsModule,
     Button,
-    ColorPicker,
-    Slider,
     Tag,
     Divider,
     InputTextModule,
     Badge,
     Tooltip,
-    Dialog
+    Dialog,
+    ToolbarComponent
   ],
   templateUrl: './whiteboard.html',
   styleUrl: './whiteboard.scss',
@@ -82,6 +80,7 @@ export class Whiteboard {
   selectedTool = signal<DrawingTool>('pen');
   color = signal<string>('#000000');
   strokeWidth = signal<number>(3);
+  eraserSize = signal<number>(10); // Separate eraser size (in pixels)
 
   // ============================================================================
   // ROOM & CONNECTION STATE
@@ -115,35 +114,26 @@ export class Whiteboard {
     this.isConnected() ? 'pi pi-check-circle' : 'pi pi-times-circle'
   );
 
-  penToolSelected = computed<boolean>(() => this.selectedTool() === 'pen');
-
-  // Computed class bindings for tool buttons
-  penButtonClasses = computed(() => {
-    const base = 'flex flex-col items-center justify-center gap-2 p-4 rounded-lg border-2 transition-all duration-200 cursor-pointer';
-    return this.selectedTool() === 'pen'
-      ? `${base} bg-primary text-white border-primary shadow-md tool-button active`
-      : `${base} bg-surface-50 text-surface-700 border-surface-200 hover:bg-surface-100 tool-button`;
-  });
-
-  eraserButtonClasses = computed(() => {
-    const base = 'flex flex-col items-center justify-center gap-2 p-4 rounded-lg border-2 transition-all duration-200 cursor-pointer';
-    return this.selectedTool() === 'eraser'
-      ? `${base} bg-primary text-white border-primary shadow-md tool-button active`
-      : `${base} bg-surface-50 text-surface-700 border-surface-200 hover:bg-surface-100 tool-button`;
-  });
-
-  clearButtonClasses = computed(() => {
-    const base = 'flex flex-col items-center justify-center gap-2 p-4 rounded-lg border-2 transition-all duration-200 cursor-pointer';
-    return this.selectedTool() === 'clear'
-      ? `${base} bg-primary text-white border-primary shadow-md tool-button active`
-      : `${base} bg-surface-50 text-surface-700 border-surface-200 hover:bg-surface-100 tool-button`;
-  });
-
   sidebarToggleClasses = computed(() => {
     const base = 'bg-white/90 backdrop-blur-sm hover:bg-white shadow-sm transition-colors cursor-pointer';
     return this.sidebarVisible() 
       ? `${base} text-primary`
       : `${base} text-surface-600`;
+  });
+
+  /**
+   * Computed signal: Get cursor class based on selected tool
+   * 
+   * Returns appropriate cursor class for the current tool.
+   * - Pen tool: crosshair cursor
+   * - Eraser tool: custom eraser cursor (SVG icon)
+   */
+  canvasCursor = computed<string>(() => {
+    const tool = this.selectedTool();
+    if (tool === 'eraser') {
+      return 'cursor-eraser';
+    }
+    return 'cursor-crosshair';
   });
 
   // ============================================================================
@@ -429,7 +419,7 @@ export class Whiteboard {
       );
     } else if (tool === 'eraser' && points.length >= 2) {
       const lastPoint = points[points.length - 1];
-      const eraseSize = this.strokeWidth() * 2;
+      const eraseSize = this.eraserSize();
       this.canvasService.erase({
         x: lastPoint[0] - eraseSize / 2,
         y: lastPoint[1] - eraseSize / 2,
@@ -510,7 +500,7 @@ export class Whiteboard {
     }
 
     // Calculate bounding rectangle for erase region
-    const eraseSize = this.strokeWidth() * 2;
+    const eraseSize = this.eraserSize();
     const boundingRect = getBoundingRect(points);
     
     // Expand region by erase size
@@ -581,6 +571,11 @@ export class Whiteboard {
   updateStrokeWidth(newWidth: number): void {
     const clampedValue = Math.max(1, Math.min(20, newWidth));
     this.strokeWidth.set(clampedValue);
+  }
+
+  updateEraserSize(newSize: number): void {
+    const clampedValue = Math.max(5, Math.min(100, newSize));
+    this.eraserSize.set(clampedValue);
   }
 
   // ============================================================================
